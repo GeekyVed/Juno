@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:juno/assistants/assistant_methods.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -16,6 +17,7 @@ class SplashScreen extends StatelessWidget {
     if (prefs.getBool('first-checkin') == true || prefs.getBool('first-checkin') == null) {
       Get.offNamed("/onboarding");
     } else if (prefs.getBool('logged-in') == true) {
+      AssistantMethods.readCurrentOnlineUserInfo();
       Get.offNamed("/home");
     } else {
       Get.offNamed("/login");

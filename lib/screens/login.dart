@@ -1,9 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:juno/global.dart';
 import 'package:juno/widgets/auth_google_btn.dart';
 import 'package:juno/widgets/auth_input_field.dart';
 import 'package:juno/widgets/auth_screen_img.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
@@ -13,10 +17,40 @@ class LoginScreen extends StatelessWidget {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isPasswordVisible = false;
+  bool isLoading = false;
 
-  void saveFormData() {
-    //Firebase Stuff
-    Get.toNamed('/home');
+  void saveFormData() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+    }
+
+    try {
+      isLoading = true;
+      // Firebase Stuff
+      UserCredential userCredential = await firebaseAuth
+          .signInWithEmailAndPassword(email: email!, password: password!);
+
+      currentUser = userCredential.user;
+
+      // Updating Auth Status
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setBool("logged-in", true);
+
+      Fluttertoast.showToast(
+          msg: "Login Successful",
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 16.0);
+      Get.toNamed('/home');
+    } catch (error) {
+      Fluttertoast.showToast(
+          msg: "Error Occured : ${error}",
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } finally {
+      isLoading = false;
+    }
   }
 
   @override
@@ -66,20 +100,28 @@ class LoginScreen extends StatelessWidget {
                       ElevatedButton(
                         onPressed: saveFormData,
                         style: Theme.of(context).elevatedButtonTheme.style,
-                        child: Text(
-                          "Login",
-                          style:
-                              Theme.of(context).textTheme.labelMedium!.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
+                        child: isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Text(
+                                "Login",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium!
+                                    .copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
                       ),
                       SizedBox(
                         height: deviceHeight * 0.008,
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Get.toNamed('/forgotPassword');
+                        },
                         child: Text(
                           "Forgot Password!",
                           style: GoogleFonts.quicksand(

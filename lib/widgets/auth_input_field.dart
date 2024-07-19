@@ -1,19 +1,7 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-class AuthInputFieldController extends GetxController {
-  RxBool isPasswordVisible = false.obs;
-
-  void toggleVisibility() {
-    isPasswordVisible.value = !isPasswordVisible.value;
-  }
-}
-
-class AuthInputField extends StatelessWidget {
-  static final AuthInputFieldController authInputFieldController =
-      Get.put(AuthInputFieldController());
-
+class AuthInputField extends StatefulWidget {
   AuthInputField({
     super.key,
     required this.label,
@@ -25,7 +13,20 @@ class AuthInputField extends StatelessWidget {
   final int minLength;
   final Function(String) onSave;
 
+  @override
+  State<AuthInputField> createState() => _AuthInputFieldState();
+}
+
+class _AuthInputFieldState extends State<AuthInputField> {
   final int maxLength = 50;
+
+  bool isPasswordVisible = false;
+
+  void toggleVisibility() {
+    setState(() {
+      isPasswordVisible = !isPasswordVisible;
+    });
+  }
 
   Icon getPrefixIcon(String label) {
     switch (label.toLowerCase()) {
@@ -58,16 +59,14 @@ class AuthInputField extends StatelessWidget {
   }
 
   IconButton? suffixButtonForPassword() {
-    if (label.toLowerCase() == "password" ||
-        label.toLowerCase() == "confirm password") {
+    if (widget.label.toLowerCase() == "password" ||
+        widget.label.toLowerCase() == "confirm password") {
       return IconButton(
         onPressed: () {
-          authInputFieldController.toggleVisibility();
+          toggleVisibility();
         },
         icon: Icon(
-          authInputFieldController.isPasswordVisible.value
-              ? Icons.visibility_off
-              : Icons.visibility,
+          isPasswordVisible ? Icons.visibility_off : Icons.visibility,
         ),
       );
     }
@@ -76,57 +75,57 @@ class AuthInputField extends StatelessWidget {
 
   @override
   build(BuildContext context) {
+    final bool isPassword = widget.label.toLowerCase() == "password" ||
+        widget.label.toLowerCase() == "confirm password";
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Obx(
-        () => TextFormField(
-          decoration: InputDecoration(
-            label: Text(
-              label,
+      child: TextFormField(
+        decoration: InputDecoration(
+          label: Text(
+            widget.label,
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.onInverseSurface,
+          labelStyle: Theme.of(context).textTheme.labelMedium,
+          prefixIcon: getPrefixIcon(widget.label),
+          prefixIconColor: Theme.of(context).colorScheme.onSurface,
+          suffixIcon: suffixButtonForPassword(),
+          suffixIconColor: Theme.of(context).colorScheme.onSurface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(
+              18,
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.onInverseSurface,
-            labelStyle: Theme.of(context).textTheme.labelMedium,
-            prefixIcon: getPrefixIcon(label),
-            prefixIconColor: Theme.of(context).colorScheme.onSurface,
-            suffixIcon: suffixButtonForPassword(),
-            suffixIconColor: Theme.of(context).colorScheme.onSurface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(
-                18,
-              ),
-              borderSide: const BorderSide(
-                width: 0,
-                style: BorderStyle.none,
-              ),
+            borderSide: const BorderSide(
+              width: 0,
+              style: BorderStyle.none,
             ),
           ),
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return '${label} can\'t be empty!';
-            }
-
-            if (value.trim().length > maxLength) {
-              return '${label} can\'t be more than $maxLength!';
-            }
-
-            if (value.trim().length < minLength) {
-              return 'Enter a valid ${label}!';
-            }
-
-            if (label.toLowerCase() == 'email' &&
-                !EmailValidator.validate(value.trim())) {
-              return 'Enter a valid ${label}!';
-            }
-            return null;
-          },
-          obscureText: !authInputFieldController.isPasswordVisible.isTrue,
-          onSaved: (value) {
-            onSave(value!);
-          },
         ),
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return '${widget.label} can\'t be empty!';
+          }
+
+          if (value.trim().length > maxLength) {
+            return '${widget.label} can\'t be more than $maxLength!';
+          }
+
+          if (value.trim().length < widget.minLength) {
+            return 'Enter a valid ${widget.label}!';
+          }
+
+          if (widget.label.toLowerCase() == 'email' &&
+              !EmailValidator.validate(value.trim())) {
+            return 'Enter a valid ${widget.label}!';
+          }
+          return null;
+        },
+        obscureText: isPassword && !isPasswordVisible,
+        onSaved: (value) {
+          widget.onSave(value!.trim());
+        },
       ),
     );
   }
