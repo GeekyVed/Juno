@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:juno/screens/home.dart';
 import 'package:juno/screens/login.dart';
+import 'package:juno/screens/onboarding.dart';
 import 'package:juno/screens/register.dart';
 import 'package:juno/screens/splash.dart';
 import 'package:juno/themes/dark.dart';
@@ -28,8 +29,9 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
         '/home': (context) => const HomeScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
       },
-      initialRoute: '/register',
+      initialRoute: '/splash',
     );
   }
 }
