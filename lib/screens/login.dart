@@ -9,23 +9,32 @@ import 'package:juno/widgets/auth_input_field.dart';
 import 'package:juno/widgets/auth_screen_img.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   LoginScreen({super.key});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   String? email;
+
   String? password;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   bool isPasswordVisible = false;
+
   bool isLoading = false;
 
   void saveFormData() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
     }
-
-    try {
+    setState(() {
       isLoading = true;
+    });
+    try {
       // Firebase Stuff
       UserCredential userCredential = await firebaseAuth
           .signInWithEmailAndPassword(email: email!, password: password!);
@@ -49,7 +58,9 @@ class LoginScreen extends StatelessWidget {
           textColor: Colors.white,
           fontSize: 16.0);
     } finally {
-      isLoading = false;
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -162,7 +173,7 @@ class LoginScreen extends StatelessWidget {
                       SizedBox(
                         height: deviceHeight * 0.01,
                       ),
-                      const AuthGoogleBtn(
+                      AuthGoogleBtn(
                         label: "Sign In with Google",
                       ),
                       SizedBox(

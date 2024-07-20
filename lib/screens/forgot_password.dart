@@ -6,10 +6,16 @@ import 'package:juno/global.dart';
 import 'package:juno/widgets/auth_input_field.dart';
 import 'package:juno/widgets/auth_screen_img.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
+class ForgotPasswordScreen extends StatefulWidget {
   ForgotPasswordScreen({super.key});
 
+  @override
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   String? email;
+  bool isLoading = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -19,6 +25,9 @@ class ForgotPasswordScreen extends StatelessWidget {
     }
 
     try {
+      setState(() {
+        isLoading = true;
+      });
       // Firebase Stuff
       await firebaseAuth.sendPasswordResetEmail(
         email: email!,
@@ -36,6 +45,10 @@ class ForgotPasswordScreen extends StatelessWidget {
           backgroundColor: Colors.red,
           textColor: Colors.white,
           fontSize: 16.0);
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 

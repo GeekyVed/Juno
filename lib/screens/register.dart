@@ -13,18 +13,30 @@ import 'package:juno/widgets/auth_screen_img.dart';
 import 'package:juno/global.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   RegisterScreen({super.key});
 
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
   String? name;
+
   String? email;
+
   String? phone;
+
   String? address;
+
   String? password;
+
   String? confirmPassword;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   bool isPasswordVisible = false;
+
   bool isLoading = false;
 
   void saveFormData() async {
@@ -40,9 +52,10 @@ class RegisterScreen extends StatelessWidget {
           fontSize: 16.0);
       return;
     }
-
-    try {
+    setState(() {
       isLoading = true;
+    });
+    try {
       // Firebase Stuff
       UserCredential userCredential = await firebaseAuth
           .createUserWithEmailAndPassword(email: email!, password: password!);
@@ -81,7 +94,9 @@ class RegisterScreen extends StatelessWidget {
           textColor: Colors.white,
           fontSize: 16.0);
     } finally {
-      isLoading = true;
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -207,7 +222,7 @@ class RegisterScreen extends StatelessWidget {
                       SizedBox(
                         height: deviceHeight * 0.01,
                       ),
-                      const AuthGoogleBtn(
+                      AuthGoogleBtn(
                         label: "Sign Up with Google",
                       ),
                       SizedBox(
