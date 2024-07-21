@@ -1,10 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:juno/Info_Handler/app_info.dart';
 import 'package:juno/assistants/assistant_methods.dart';
+import 'package:juno/global.dart';
+import 'package:juno/models/directions.dart';
+import 'package:juno/widgets/progress_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
       Completer<GoogleMapController>();
 
   GoogleMapController? newGoogleMapController;
+
+  AppInfoController appInfoController = Get.find();
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(37.42796133580664, -122.085749655962),
@@ -38,19 +46,139 @@ class _HomeScreenState extends State<HomeScreen> {
 // //  LocationPermission? _locationPermission;
 //   double bottomPaddingOfMap = 0;
 
-  // List<LatLng> pLineCordinatesList = [];
+  List<LatLng> pLineCordinatesList = [];
   Set<Polyline> polylineSet = {};
 
   Set<Marker> markerSet = {};
   Set<Circle> circleSet = {};
 
-//   String _userName = "";
-//   String _userEmail = "";
+  String _userName = "";
+  String _userEmail = "";
 
-//   bool openNavigationDrawer = true;
+  bool openNavigationDrawer = true;
 //   bool activeDriverNearbyKeysLoaded = false;
 
 //   BitmapDescriptor? activeNearbyIcon;
+
+  Future<void> drawPolylineFromOriginToDestination(bool isDarkTheme) async {
+    var originPosition = appInfoController.userPickUpLocation;
+    var destinationPosition = appInfoController.userDropoffLocation;
+    var originLatlng = LatLng(originPosition.value!.locationLatitude!,
+        originPosition.value!.locationLongitude!);
+    var destnationLatlng = LatLng(destinationPosition.value!.locationLatitude!,
+        destinationPosition.value!.locationLongitude!);
+    Get.dialog(const ProgressDialog(
+      task: "b",
+    ));
+
+    var directionDetailsInfo =
+        await AssistantMethods.obtainOriginToDestinationDirectionDetails(
+            originLatlng, destnationLatlng);
+
+    setState(() {
+      tripDirectionDetailsInfo = directionDetailsInfo;
+    });
+
+    Get.back();
+
+    PolylinePoints pPoints = PolylinePoints();
+    List<PointLatLng> decodePolylinePointsResultList =
+        pPoints.decodePolyline(directionDetailsInfo!.e_points!);
+
+    pLineCordinatesList.clear();
+
+    if (decodePolylinePointsResultList.isNotEmpty) {
+      decodePolylinePointsResultList.forEach((PointLatLng pointLatLng) {
+        pLineCordinatesList
+            .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+      });
+    }
+
+    polylineSet.clear();
+
+    setState(() {
+      Polyline polyline = Polyline(
+        polylineId: PolylineId("PolylineID"),
+        color: isDarkTheme ? Colors.green : Colors.blue,
+        jointType: JointType.round,
+        points: pLineCordinatesList,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        geodesic: true,
+        width: 5,
+      );
+
+      polylineSet.add(polyline);
+    });
+
+    LatLngBounds boundsLatLng;
+    if (originLatlng.latitude > destnationLatlng.latitude &&
+        originLatlng.longitude > destnationLatlng.longitude) {
+      boundsLatLng =
+          LatLngBounds(southwest: destnationLatlng, northeast: originLatlng);
+    } else if (originLatlng.longitude > destnationLatlng.longitude) {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(originLatlng.latitude, destnationLatlng.longitude),
+        northeast: LatLng(destnationLatlng.latitude, originLatlng.longitude),
+      );
+    } else if (originLatlng.latitude > destnationLatlng.latitude) {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(destnationLatlng.latitude, originLatlng.longitude),
+        northeast: LatLng(originLatlng.latitude, destnationLatlng.longitude),
+      );
+    } else {
+      boundsLatLng = LatLngBounds(
+        southwest: originLatlng,
+        northeast: destnationLatlng,
+      );
+    }
+
+    newGoogleMapController!
+        .animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
+
+    Marker originMarker = Marker(
+      markerId: MarkerId("origin_id"),
+      infoWindow: InfoWindow(title: originPosition.value!.locationName,snippet: "Origin",),
+      position: originLatlng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+    );
+
+    Marker destinationMarker = Marker(
+      markerId: MarkerId("destination_id"),
+      infoWindow: InfoWindow(title: destinationPosition.value!.locationName,snippet: "Destination",),
+      position: destnationLatlng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+    );
+
+    setState(() {
+      markerSet.add(originMarker);
+      markerSet.add(destinationMarker);
+    });
+
+    Circle originCircle = Circle(
+      circleId: CircleId("origin_id"),
+      center: originLatlng,
+      radius: 12,
+      strokeWidth: 3,
+      fillColor: Colors.green,
+      strokeColor: Colors.white,
+    );
+
+    Circle destinationCircle = Circle(
+      circleId: CircleId("destination_id"),
+      center: destnationLatlng,
+      radius: 12,
+      strokeWidth: 3,
+      fillColor: Colors.red,
+      strokeColor: Colors.white,
+    );
+
+
+    setState(() {
+      circleSet.add(originCircle);
+      circleSet.add(destinationCircle);
+    });
+  }
 
   void locateUserPosition() async {
     // this method locats our posiotn and puts in center of map and also reverse geocode thename of place
@@ -71,13 +199,26 @@ class _HomeScreenState extends State<HomeScreen> {
     String humanReadableAddress =
         await AssistantMethods.searchAddressForGeographicalCordinates_Position(
             userCurrentPosition!, context);
-    print('Our Address : $humanReadableAddress');
+
+    _userName = userModelCurrentInfo!.name!;
+    _userEmail = userModelCurrentInfo!.email!;
   }
 
   // method to fetch the info from cordinates at which the pin is i.e center of map[Camera positon target is alway at center]
   void getLocationFromLatLng() async {
     try {
-      _address = await AssistantMethods.searchAddressForGeographicalCordinates_LatLng(pickLocation!, context);
+      String loc =
+          await AssistantMethods.searchAddressForGeographicalCordinates_LatLng(
+              pickLocation!, context);
+      setState(() {
+        Directions userPickupLocation = Directions();
+        userPickupLocation.locationLatitude = pickLocation!.latitude;
+        userPickupLocation.locationLongitude = pickLocation!.longitude;
+        userPickupLocation.locationName = loc;
+        _address = loc;
+
+        appInfoController.updatePickupLocationAddress(userPickupLocation);
+      });
     } catch (e) {
       print(e);
     }
@@ -129,6 +270,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkTheme =
+        MediaQuery.of(context).platformBrightness == Brightness.dark;
+
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
       child: Scaffold(
@@ -178,35 +322,170 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+
+            // Search UI
             Positioned(
-              top: 40,
-              right: 20,
-              left: 20,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
+              bottom: 0,
+              right: 0,
+              left: 0,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 50, 10, 13),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onInverseSurface,
+                    color: isDarkTheme
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          _address ?? "Set your Pickup Location",
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          softWrap: true,
-                          overflow: TextOverflow.visible,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 13,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDarkTheme
+                          ? Colors.grey.shade900
+                          : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                color: isDarkTheme
+                                    ? Colors.amber.shade400
+                                    : Colors.blue,
+                                size: 32,
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "From",
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                  Obx(() {
+                                    final pickUpLocation = appInfoController
+                                        .userPickUpLocation.value;
+                                    String displayedLocation =
+                                        pickUpLocation?.locationName ??
+                                            "Not Getting Address";
+
+                                    if (displayedLocation !=
+                                            "Not Getting Address" &&
+                                        displayedLocation.length > 33) {
+                                      displayedLocation =
+                                          displayedLocation.substring(0, 33) +
+                                              "...";
+                                    }
+
+                                    return Text(
+                                      displayedLocation, // Add ellipsis after 25 characters
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium!
+                                          .copyWith(
+                                            overflow: TextOverflow
+                                                .ellipsis, // Enable ellipsis for overflowing text
+                                          ),
+                                      softWrap:
+                                          true, // Allow wrapping to next line if needed
+                                    );
+                                  }),
+                                ],
+                              )
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        Divider(
+                          height: 1,
+                          thickness: 2,
+                          color:
+                              isDarkTheme ? Colors.amber.shade400 : Colors.blue,
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            // Go to search places screen
+                            String responseFromSearchScreen =
+                                await Get.toNamed("/searchPlaces");
+                            if (responseFromSearchScreen == "obtainedDropoff") {
+                              openNavigationDrawer = false;
+                            }
+
+                            drawPolylineFromOriginToDestination(isDarkTheme);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  color: isDarkTheme
+                                      ? Colors.amber.shade400
+                                      : Colors.blue,
+                                  size: 32,
+                                ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "To",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium,
+                                    ),
+                                    Obx(() {
+                                      final dropoffLocation = appInfoController
+                                          .userDropoffLocation.value;
+                                      String displayedLocation =
+                                          dropoffLocation?.locationName ??
+                                              "Where To!";
+                                      if (displayedLocation != "Where To!" &&
+                                          displayedLocation.length > 36) {
+                                        displayedLocation =
+                                            displayedLocation.substring(0, 36) +
+                                                "...";
+                                      }
+
+                                      return Text(
+                                        displayedLocation,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium!
+                                            .copyWith(
+                                              overflow: TextOverflow
+                                                  .ellipsis, // Enable ellipsis for overflowing text
+                                            ),
+                                        softWrap:
+                                            true, // Allow wrapping to next line if needed
+                                      );
+                                    }),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

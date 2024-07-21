@@ -7,9 +7,9 @@ class RequestAssistant {
       Response response = await dio.get(url);
       return response.data;
     } on DioException catch (e) {
-      print("Dio Error Occured : $e");
+      throw "Dio Error Occured : $e";
     } catch (e) {
-      print("Error Occured : $e");
+      throw "Error Occured : $e";
     }
   }
 }

@@ -8,15 +8,18 @@ import 'package:juno/screens/home.dart';
 import 'package:juno/screens/login.dart';
 import 'package:juno/screens/onboarding.dart';
 import 'package:juno/screens/register.dart';
+import 'package:juno/screens/search_places.dart';
 import 'package:juno/screens/splash.dart';
 import 'package:juno/themes/dark.dart';
 import 'package:juno/themes/light.dart';
+import 'package:juno/utils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await registerControllers();
   await dotenv.load(fileName: '.env');
   runApp(const MyApp());
 }
@@ -37,9 +40,10 @@ class MyApp extends StatelessWidget {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) =>  HomeScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/forgotPassword': (context) => ForgotPasswordScreen(),
+        '/searchPlaces' : (context) => SearchPlacesScreen(),
       },
       initialRoute: '/splash',
     );

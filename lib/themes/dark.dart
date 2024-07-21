@@ -28,6 +28,10 @@ ThemeData darkTheme = ThemeData.dark().copyWith(
       fontSize: 19,
       color: kDarkColorScheme.onSurface,
     ),
+    bodyMedium: GoogleFonts.quicksand(
+      fontSize: 17,
+      color: kDarkColorScheme.onSurface,
+    ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(

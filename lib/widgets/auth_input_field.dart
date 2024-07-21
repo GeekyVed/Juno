@@ -80,6 +80,7 @@ class _AuthInputFieldState extends State<AuthInputField> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextFormField(
+        style: Theme.of(context).textTheme.labelMedium,
         decoration: InputDecoration(
           label: Text(
             widget.label,

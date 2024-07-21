@@ -28,6 +28,10 @@ ThemeData lightTheme = ThemeData.light().copyWith(
       fontSize: 19,
       color: kLightColorScheme.onSurface,
     ),
+    bodyMedium: GoogleFonts.quicksand(
+      fontSize: 17,
+      color: kLightColorScheme.onSurface,
+    ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
