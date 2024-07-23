@@ -6,6 +6,7 @@ class UserModel {
   String? email;
   String? phone;
   String? address;
+  String? imageurl;
 
   UserModel({
     required this.id,
@@ -13,6 +14,7 @@ class UserModel {
     required this.name,
     required this.address,
     required this.phone,
+    required this.imageurl,
   });
 
   UserModel.fromSnapshot(DataSnapshot snapshot) {
@@ -21,5 +23,6 @@ class UserModel {
     email = (snapshot.value as dynamic)['email'];
     address = (snapshot.value as dynamic)['address'];
     phone = (snapshot.value as dynamic)['phone'];
+    imageurl = (snapshot.value as dynamic)['imageurl'];
   }
 }

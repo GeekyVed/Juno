@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:intl_phone_field/phone_number.dart';
 import 'package:juno/global.dart';
+import 'package:juno/models/phone_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthGoogleBtn extends StatefulWidget {
@@ -75,8 +79,9 @@ class _AuthGoogleBtnState extends State<AuthGoogleBtn> {
   Future<void> handleGoogleSignIn() async {
     setState(() => isLoading = true);
     try {
-     final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
 
       if (googleSignInAccount != null) {
         final GoogleSignInAuthentication googleSignInAuthentication =
@@ -95,7 +100,8 @@ class _AuthGoogleBtnState extends State<AuthGoogleBtn> {
           await _saveUserData(currentUser!);
           await _updateAuthStatus();
           _showSuccessToast();
-          Get.offAllNamed('/home'); // Use offAllNamed to remove all previous routes
+          Get.offAllNamed(
+              '/home'); // Use offAllNamed to remove all previous routes
         }
       }
     } catch (error) {
@@ -111,7 +117,11 @@ class _AuthGoogleBtnState extends State<AuthGoogleBtn> {
       "name": user.displayName ?? "Not Defined",
       "email": user.email ?? "Not Defined",
       "address": "Not Defined",
-      "phone": user.phoneNumber ?? "Not Defined",
+      "phone": user.phoneNumber != null
+          ? jsonEncode(PhoneInfo.fromPhoneNumber(PhoneNumber.fromCompleteNumber(
+              completeNumber: user.phoneNumber!)))
+          : "Not Defined",
+      "imageurl": user.photoURL ?? "Not Defined",
     };
 
     final DatabaseReference ref = firebaseDatabase.ref().child('users');

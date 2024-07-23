@@ -7,6 +7,8 @@ import 'package:juno/screens/forgot_password.dart';
 import 'package:juno/screens/home.dart';
 import 'package:juno/screens/login.dart';
 import 'package:juno/screens/onboarding.dart';
+import 'package:juno/screens/precise_pickup_location.dart';
+import 'package:juno/screens/profile.dart';
 import 'package:juno/screens/register.dart';
 import 'package:juno/screens/search_places.dart';
 import 'package:juno/screens/splash.dart';
@@ -44,6 +46,8 @@ class MyApp extends StatelessWidget {
         '/onboarding': (context) => const OnboardingScreen(),
         '/forgotPassword': (context) => ForgotPasswordScreen(),
         '/searchPlaces' : (context) => SearchPlacesScreen(),
+        '/precisePickupLocation' : (context) => PrecisePickupLocationScreen(),
+         '/profile' : (context) => ProfileScreen(),
       },
       initialRoute: '/splash',
     );

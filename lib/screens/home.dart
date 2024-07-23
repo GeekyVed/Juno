@@ -5,11 +5,13 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:juno/Info_Handler/app_info.dart';
 import 'package:juno/assistants/assistant_methods.dart';
 import 'package:juno/global.dart';
 import 'package:juno/models/directions.dart';
+import 'package:juno/screens/drawer.dart';
 import 'package:juno/widgets/progress_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -44,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
 //   // var geolocation = GeoLocatoer;
 
 // //  LocationPermission? _locationPermission;
-//   double bottomPaddingOfMap = 0;
+  double bottomPaddingOfMap = 0;
 
   List<LatLng> pLineCordinatesList = [];
   Set<Polyline> polylineSet = {};
@@ -59,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
 //   bool activeDriverNearbyKeysLoaded = false;
 
 //   BitmapDescriptor? activeNearbyIcon;
+
+  final GlobalKey<ScaffoldState> _scaffoldState = GlobalKey();
 
   Future<void> drawPolylineFromOriginToDestination(bool isDarkTheme) async {
     var originPosition = appInfoController.userPickUpLocation;
@@ -138,14 +142,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Marker originMarker = Marker(
       markerId: MarkerId("origin_id"),
-      infoWindow: InfoWindow(title: originPosition.value!.locationName,snippet: "Origin",),
+      infoWindow: InfoWindow(
+        title: originPosition.value!.locationName,
+        snippet: "Origin",
+      ),
       position: originLatlng,
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
     );
 
     Marker destinationMarker = Marker(
       markerId: MarkerId("destination_id"),
-      infoWindow: InfoWindow(title: destinationPosition.value!.locationName,snippet: "Destination",),
+      infoWindow: InfoWindow(
+        title: destinationPosition.value!.locationName,
+        snippet: "Destination",
+      ),
       position: destnationLatlng,
       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
     );
@@ -172,7 +182,6 @@ class _HomeScreenState extends State<HomeScreen> {
       fillColor: Colors.red,
       strokeColor: Colors.white,
     );
-
 
     setState(() {
       circleSet.add(originCircle);
@@ -205,24 +214,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // method to fetch the info from cordinates at which the pin is i.e center of map[Camera positon target is alway at center]
-  void getLocationFromLatLng() async {
-    try {
-      String loc =
-          await AssistantMethods.searchAddressForGeographicalCordinates_LatLng(
-              pickLocation!, context);
-      setState(() {
-        Directions userPickupLocation = Directions();
-        userPickupLocation.locationLatitude = pickLocation!.latitude;
-        userPickupLocation.locationLongitude = pickLocation!.longitude;
-        userPickupLocation.locationName = loc;
-        _address = loc;
+  // void getLocationFromLatLng() async {
+  //   try {
+  //     String loc =
+  //         await AssistantMethods.searchAddressForGeographicalCordinates_LatLng(
+  //             pickLocation!, context);
+  //     setState(() {
+  //       Directions userPickupLocation = Directions();
+  //       userPickupLocation.locationLatitude = pickLocation!.latitude;
+  //       userPickupLocation.locationLongitude = pickLocation!.longitude;
+  //       userPickupLocation.locationName = loc;
+  //       _address = loc;
 
-        appInfoController.updatePickupLocationAddress(userPickupLocation);
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
+  //       appInfoController.updatePickupLocationAddress(userPickupLocation);
+  //     });
+  //   } catch (e) {
+  //     print(e);
+  //   }
+  // }
 
   void checkLocationPermission() async {
     bool serviceEnabled;
@@ -276,9 +285,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
       child: Scaffold(
+        key: _scaffoldState,
+        drawer: const DrawerScreen(),
         body: Stack(
           children: [
             GoogleMap(
+              padding: EdgeInsets.only(
+                top: 30,
+                bottom: bottomPaddingOfMap,
+              ),
+
               mapType: MapType.normal,
               myLocationEnabled:
                   true, // Show the small dot for current location
@@ -298,32 +314,53 @@ class _HomeScreenState extends State<HomeScreen> {
               polylines: polylineSet,
               markers: markerSet,
               circles: circleSet,
-              onCameraMove: (CameraPosition? newCameraPosition) {
-                if (pickLocation != newCameraPosition!.target) {
-                  setState(() {
-                    pickLocation = newCameraPosition.target;
-                  });
-                }
-              },
-              onCameraIdle: () {
-                // This is the scenario that pickup location is diff form current location
-                getLocationFromLatLng();
-              },
+              // onCameraMove: (CameraPosition? newCameraPosition) {
+              //   if (pickLocation != newCameraPosition!.target) {
+              //     setState(() {
+              //       pickLocation = newCameraPosition.target;
+              //     });
+              //   }
+              // },
+              // onCameraIdle: () {
+              //   // This is the scenario that pickup location is diff form current location
+              //   getLocationFromLatLng();
+              // },
             ),
             // Dislaying a locaiotn pin in center of screen to represent the pickup location of user
-            Align(
-              alignment: Alignment.center,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 35.0),
-                child: Image.asset(
-                  "lib/assets/icons/location_pin.png",
-                  height: 50,
-                  width: 50,
+            // Align(
+            //   alignment: Alignment.center,
+            //   child: Padding(
+            //     padding: const EdgeInsets.only(bottom: 35.0),
+            //     child: Image.asset(
+            //       "lib/assets/icons/location_pin.png",
+            //       height: 50,
+            //       width: 50,
+            //     ),
+            //   ),
+            // ),
+
+            // Custom Hamburger icon
+            Positioned(
+              top: 50,
+              left: 20,
+              child: Container(
+                child: GestureDetector(
+                  onTap: () {
+                    _scaffoldState.currentState!.openDrawer();
+                  },
+                  child: CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.onSurface,
+                    child: Icon(
+                      Icons.menu,
+                      color: Theme.of(context).colorScheme.onInverseSurface,
+                    ),
+                  ),
                 ),
               ),
             ),
 
-            // Search UI
+            // Locaiton UI
             Positioned(
               bottom: 0,
               right: 0,
@@ -350,6 +387,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(5.0),
@@ -479,13 +517,88 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
-                        )
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  textStyle: GoogleFonts.quicksand(
+                                    fontSize: 20,
+                                    color:
+                                        Theme.of(context).colorScheme.surface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .onInverseSurface,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      18,
+                                    ),
+                                  ),
+                                  minimumSize: const Size(double.infinity, 53),
+                                ),
+                                onPressed: () {
+                                  Get.toNamed('/precisePickupLocation');
+                                },
+                                child: Text(
+                                  "Change Pick Up",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(
+                                        fontSize: 17,
+                                      ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 13,
+                            ),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  textStyle: GoogleFonts.quicksand(
+                                    fontSize: 20,
+                                    color:
+                                        Theme.of(context).colorScheme.surface,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .onInverseSurface,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      18,
+                                    ),
+                                  ),
+                                  minimumSize: const Size(double.infinity, 53),
+                                ),
+                                onPressed: () {},
+                                child: Text(
+                                  "Request a ride",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(
+                                        fontSize: 17,
+                                      ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),

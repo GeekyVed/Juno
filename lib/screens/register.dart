@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:juno/models/phone_info.dart';
 import 'package:juno/widgets/auth_google_btn.dart';
 import 'package:juno/widgets/auth_input_field.dart';
 import 'package:juno/widgets/auth_phone_input.dart';
@@ -25,7 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String? email;
 
-  String? phone;
+  PhoneInfo? phone;
 
   String? address;
 
@@ -68,7 +69,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           "name": name!,
           "email": email!,
           "address": address!,
-          "phone": phone!,
+          "phone": jsonEncode(phone!.toJson()),
+          "imageurl": "Not Defined",
         };
 
         DatabaseReference ref = firebaseDatabase.ref().child('users');

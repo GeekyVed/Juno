@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:intl_phone_field/phone_number.dart';
+import 'package:juno/models/phone_info.dart';
 
 class AuthPhoneInput extends StatelessWidget {
   const AuthPhoneInput({
@@ -8,7 +10,7 @@ class AuthPhoneInput extends StatelessWidget {
     required this.onSave,
   });
 
-  final Function(String) onSave;
+  final Function(PhoneInfo) onSave;
   @override
   build(BuildContext context) {
     return Padding(
@@ -46,8 +48,8 @@ class AuthPhoneInput extends StatelessWidget {
 
           return null;
         },
-        onSaved: (value) {
-          onSave(value!.toString());
+        onSaved: (PhoneNumber? value) {
+          onSave(PhoneInfo.fromPhoneNumber(value!));
         },
         initialCountryCode: 'IN',
         style: Theme.of(context).textTheme.labelMedium,
