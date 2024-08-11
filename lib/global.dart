@@ -11,6 +11,14 @@ User? currentUser;
 
 UserModel? userModelCurrentInfo;
 
+String cloudMessagingServerToken = "";
 String userDropoffAddress = "";
-
+List driversList = [];
 DirectionDetailsInfo? tripDirectionDetailsInfo;
+
+String driverCarDetails = "";
+String driverName = "";
+String driverPhone = "";
+
+double countRatingStars = 0.0;
+String titleStarsRating = "";

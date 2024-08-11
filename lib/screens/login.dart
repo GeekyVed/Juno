@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -39,18 +40,31 @@ class _LoginScreenState extends State<LoginScreen> {
       UserCredential userCredential = await firebaseAuth
           .signInWithEmailAndPassword(email: email!, password: password!);
 
-      currentUser = userCredential.user;
+      DatabaseReference userRef = firebaseDatabase.ref().child('users');
+      userRef.child(firebaseAuth.currentUser!.uid).once().then((val) async {
+        final snapshot = val.snapshot;
+        if (snapshot.value != null) {
+          currentUser = userCredential.user;
+          await Fluttertoast.showToast(
+              msg: "Login Successful",
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 16.0);
 
-      // Updating Auth Status
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      prefs.setBool("logged-in", true);
+          // Updating Auth Status
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setBool("logged-in", true);
 
-      Fluttertoast.showToast(
-          msg: "Login Successful",
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0);
-      Get.toNamed('/home');
+          Get.toNamed('/home');
+        } else {
+          await Fluttertoast.showToast(
+              msg: "No record exist with this email",
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0);
+        firebaseAuth.signOut();
+        }
+      });
     } catch (error) {
       Fluttertoast.showToast(
           msg: "Error Occured : ${error}",

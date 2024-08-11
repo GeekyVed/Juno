@@ -9,6 +9,7 @@ import 'package:juno/screens/login.dart';
 import 'package:juno/screens/onboarding.dart';
 import 'package:juno/screens/precise_pickup_location.dart';
 import 'package:juno/screens/profile.dart';
+import 'package:juno/screens/rate_driver.dart';
 import 'package:juno/screens/register.dart';
 import 'package:juno/screens/search_places.dart';
 import 'package:juno/screens/splash.dart';
@@ -42,12 +43,13 @@ class MyApp extends StatelessWidget {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
-        '/home': (context) =>  HomeScreen(),
+        '/home': (context) => HomeScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/forgotPassword': (context) => ForgotPasswordScreen(),
-        '/searchPlaces' : (context) => SearchPlacesScreen(),
-        '/precisePickupLocation' : (context) => PrecisePickupLocationScreen(),
-         '/profile' : (context) => ProfileScreen(),
+        '/searchPlaces': (context) => SearchPlacesScreen(),
+        '/precisePickupLocation': (context) => PrecisePickupLocationScreen(),
+        '/profile': (context) => ProfileScreen(),
+        '/rate_driver': (context) => RateDriver(),
       },
       initialRoute: '/splash',
     );
